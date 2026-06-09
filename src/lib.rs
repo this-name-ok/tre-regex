@@ -241,7 +241,10 @@ impl TreRegex {
 
     // Safely enforce bounds to prevent panic if TRE returns out-of-bounds indices
     let safe_rm_so = rm_so.min(slice_bytes.len());
-    let safe_rm_eo = rm_eo.min(slice_bytes.len());
+    let mut safe_rm_eo = rm_eo.min(slice_bytes.len());
+    while safe_rm_eo < slice_bytes.len() && !slice_to_search.is_char_boundary(safe_rm_eo) {
+      safe_rm_eo += 1;
+    }
 
     // Safe prefix extraction
     let prefix_str = std::str::from_utf8(&slice_bytes[..safe_rm_so]).unwrap_or("");
@@ -288,7 +291,7 @@ impl TreRegex {
       },
     };
 
-    Some((payload, rm_eo, prefix_chars + match_chars))
+    Some((payload, safe_rm_eo, prefix_chars + match_chars))
   }
 
   fn build_params(&self, opts: &Option<TreRegexOptions>) -> tre_regaparams_t {
